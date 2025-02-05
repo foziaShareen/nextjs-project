@@ -1,6 +1,6 @@
 "use client"
 import { ticketSchema } from '@/ValidationSchemas/tickets'
-import React from 'react'
+import React, { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -9,16 +9,36 @@ import { Input } from './ui/input'
 import SimpleMDE from "react-simplemde-editor"
 import "easymde/dist/easymde.min.css";
 import { Select, SelectItem,SelectContent, SelectTrigger, SelectValue } from './ui/select'
+import { Button } from './ui/button'
+import { useRouter } from 'next/navigation'
+import axios from 'axios'
+
  
 type TicketFormData=z.infer<typeof ticketSchema>
 
 
 const TicketForm = () => {
+    const[isSubmitting,setIsSubmitting]=useState(false)
+    const[error,setError]=useState("")
+    const router=useRouter()
+
     const form = useForm<TicketFormData>({
         resolver: zodResolver(ticketSchema)
     })
     async function onSubmit(values:z.infer<typeof ticketSchema>) {
-        console.log(values)
+        try{
+
+setIsSubmitting(true)
+setError("")
+await axios.post('/api/tickets',values)
+setIsSubmitting(false)
+router.push('/tickets')
+router.refresh()
+        }
+        catch(err){
+            setError("Something went wrong")
+            setIsSubmitting(false)
+        }
     }
     return (
         <div className='rounded-md w-full p-4 border'>
@@ -88,7 +108,8 @@ const TicketForm = () => {
                     </FormItem>
                 )}
                 />
-                    </div>     
+                    </div>   
+                    <Button type='submit' disabled={isSubmitting}>Submit</Button>  
                 </form>
             </Form>
         </div>
